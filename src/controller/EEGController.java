@@ -1,9 +1,12 @@
 package controller;
 
-import java.io.File;
+import model.EEGData;
+
+import java.io.*;
 
 public class EEGController {
     private File selectedFile;
+    private EEGData eegData;
 
     public void setSelectedFile(File file) {
         this.selectedFile = file;
@@ -20,6 +23,19 @@ public class EEGController {
             return;
         }
 
-        System.out.println("Starting EEG processing for: " + selectedFile.getName());
+        eegData = new EEGData();
+
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(selectedFile))) {
+            while (dis.available() > 0) {
+                int sample = dis.readShort();
+                eegData.addSample(sample);
+            }
+
+            System.out.println("Read " + eegData.getSampleCount() + " samples.");
+
+        } catch (IOException e) {
+            System.out.println("Error reading EEG file.");
+            e.printStackTrace();
+        }
     }
 }

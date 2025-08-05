@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 
 public class ControlPanel {
     private JPanel panel;
@@ -15,6 +16,7 @@ public class ControlPanel {
     private JButton stopButton;
     private JFileChooser fileChooser;
     private Color valid = new Color(12, 145, 23, 200);
+    private Color original = new Color(119,176,170);
 
     private final EEGController controller;
 
@@ -39,7 +41,13 @@ public class ControlPanel {
     }
 
     private void handleStartButton(ActionEvent e){
-        controller.startProcessing();
+        try {
+            startButton.setEnabled(false);
+            openButton.setBackground(original);
+            controller.startProcessing();
+        } catch (Exception exception){
+            System.out.println("Error: " + exception);
+        }
     }
 
     public JPanel getMainPanel() {
