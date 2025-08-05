@@ -8,19 +8,19 @@ public class EEGController {
     private File selectedFile;
     private EEGData eegData;
 
-    public void setSelectedFile(File file) {
+    public File setSelectedFile(File file) {
         this.selectedFile = file;
-        System.out.println("Selected file: " + file.getAbsolutePath());
+        return(file);
     }
 
     public File getSelectedFile() {
         return selectedFile;
     }
 
-    public void startProcessing() {
+    public EEGData startProcessing() {
         if (selectedFile == null) {
             System.out.println("No file selected. Cannot start processing.");
-            return;
+            return null;
         }
 
         eegData = new EEGData();
@@ -31,11 +31,12 @@ public class EEGController {
                 eegData.addSample(sample);
             }
 
-            System.out.println("Read " + eegData.getSampleCount() + " samples.");
+            return eegData;
 
         } catch (IOException e) {
             System.out.println("Error reading EEG file.");
             e.printStackTrace();
         }
+        return null;
     }
 }
