@@ -1,9 +1,12 @@
 package gui;
 
 import controller.EEGController;
+import model.EEGData;
+import service.ProcessorService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +27,7 @@ public class ControlPanel {
 
 
     private final EEGController controller;
+    private ProcessorService processor;
 
     public ControlPanel() {
         this.controller = new EEGController();
@@ -58,10 +62,13 @@ public class ControlPanel {
             statusLabel.setText("Processing file...");
             startButton.setEnabled(false);
             openButton.setBackground(original);
-            statusLabel.setText("Read " + controller.startProcessing().getSampleCount() + " samples.");
+            EEGData data = controller.startProcessing();
+            statusLabel.setText("Read " + data.getSampleCountPerChannel() + " samples.");
             statusLabel.setForeground(validLabel);
+
         } catch (Exception exception){
             statusLabel.setText("Error: " + exception);
+            System.out.println("Error:"+exception);
             statusLabel.setForeground(Color.red);
 
         }
