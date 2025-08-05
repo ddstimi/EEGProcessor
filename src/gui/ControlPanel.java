@@ -14,9 +14,14 @@ public class ControlPanel {
     private JButton startButton;
     private JButton pauseButton;
     private JButton stopButton;
+    private JLabel fileNameLabel;
+    private JLabel statusLabel;
     private JFileChooser fileChooser;
-    private Color valid = new Color(12, 145, 23, 200);
-    private Color original = new Color(119,176,170);
+    private Color valid = new Color(27, 206, 42, 200);
+    private Color validLabel = new Color(57, 238, 72, 226);
+    private Color original = new Color(100,147,142);
+    private Color label = new Color(180, 243, 235);
+
 
     private final EEGController controller;
 
@@ -24,6 +29,8 @@ public class ControlPanel {
         this.controller = new EEGController();
         fileChooser = new JFileChooser();
         startButton.setEnabled(false);
+        pauseButton.setEnabled(false);
+        stopButton.setEnabled(false);
 
         openButton.addActionListener(this::handleOpenButton);
         startButton.addActionListener(this::handleStartButton);
@@ -33,20 +40,30 @@ public class ControlPanel {
     private void handleOpenButton(ActionEvent e) {
         if (fileChooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            controller.setSelectedFile(file);
+            fileNameLabel.setForeground(label);
+            fileNameLabel.setText("Selected file: "+controller.setSelectedFile(file).getName());
             openButton.setBackground(valid);
         }
-        if (openButton.getBackground()==valid) startButton.setEnabled(true);
+        if (openButton.getBackground()==valid){
+            startButton.setEnabled(true);
+        }
 
     }
 
     private void handleStartButton(ActionEvent e){
+        pauseButton.setEnabled(true);
+        stopButton.setEnabled(true);
         try {
+            statusLabel.setForeground(label);
+            statusLabel.setText("Processing file...");
             startButton.setEnabled(false);
             openButton.setBackground(original);
-            controller.startProcessing();
+            statusLabel.setText("Read " + controller.startProcessing().getSampleCount() + " samples.");
+            statusLabel.setForeground(validLabel);
         } catch (Exception exception){
-            System.out.println("Error: " + exception);
+            statusLabel.setText("Error: " + exception);
+            statusLabel.setForeground(Color.red);
+
         }
     }
 
