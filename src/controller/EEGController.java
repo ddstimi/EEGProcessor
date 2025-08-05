@@ -13,4 +13,13 @@ public class EEGController {
     public File getSelectedFile() {
         return selectedFile;
     }
+
+    public void startProcessing() {
+        if (selectedFile == null) {
+            System.out.println("No file selected. Cannot start processing.");
+            return;
+        }
+
+        System.out.println("Starting EEG processing for: " + selectedFile.getName());
+    }
 }
