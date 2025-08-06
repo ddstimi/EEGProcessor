@@ -5,12 +5,14 @@ import model.EEGData;
 import java.io.*;
 import java.util.List;
 
-import service.ProcessorService;
+import service.EEGReaderThread;
+import service.SlidingWindowAverage;
 
 public class EEGController {
     private File selectedFile;
     private EEGData eegData;
-    private ProcessorService processor = new ProcessorService();
+    private SlidingWindowAverage processor = new SlidingWindowAverage();
+
 
 
     public File setSelectedFile(File file) {
@@ -22,40 +24,36 @@ public class EEGController {
         return selectedFile;
     }
 
-    public EEGData startProcessing() {
+    public void startProcessing() {
         if (selectedFile == null) {
             System.out.println("No file selected. Cannot start processing.");
-            return null;
+            return;
         }
 
-        eegData = new EEGData();
+        EEGReaderThread reader = new EEGReaderThread(selectedFile, new EEGReaderThread.OnReadCompleteListener() {
+            @Override
+            public void onReadComplete(EEGData data) {
+                eegData = data;
 
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(selectedFile))) {
-            try {
-                while (true) {
-                    for (int channel = 1; channel <= 32; channel++) {
-                        short rawShort = dis.readShort();
-                        eegData.addSampleToChannel(channel, rawShort);
-                    }
+                System.out.println("Reading complete. Calculating averages...");
+                List<List<Double>> slidingAverages = processor.computeSlidingAverage(eegData, 3);
+
+                List<Double> channel4 = slidingAverages.get(3);
+                for (int i = 0; i < Math.min(10, channel4.size()); i++) {
+                    System.out.println("CH4 - Sample " + (i+1) + " avg: " + channel4.get(i+1));
                 }
-            } catch (EOFException e) {
-                System.out.println("Ooops.");}
-            List<List<Double>> slidingAverages = processor.computeSlidingAverage(eegData, 3);
-
-
-            List<Double> channel4Averages = slidingAverages.get(4);
-
-            System.out.println("Sliding averages for Channel 4 (first 10):");
-            for (int i = 0; i < channel4Averages.size(); i++) {
-                System.out.println("Sample " + (i + 1) + " average: " + channel4Averages.get(i));
             }
-            return eegData;
 
-        } catch (IOException e) {
-            System.out.println("Error reading EEG file.");
-            e.printStackTrace();
-        }
-        return null;
+            @Override
+            public void onError(Exception e) {
+                System.err.println("Error while reading EEG file:");
+                e.printStackTrace();
+            }
+        });
+
+        Thread readerThread = new Thread(reader);
+        readerThread.start();
     }
-
 }
+
+

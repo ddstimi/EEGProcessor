@@ -1,4 +1,4 @@
-import gui.MainWindow;
+import view.MainWindow;
 
 import javax.swing.*;
 
