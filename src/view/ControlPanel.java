@@ -1,15 +1,13 @@
-package gui;
+package view;
 
 import controller.EEGController;
 import model.EEGData;
-import service.ProcessorService;
+import service.SlidingWindowAverage;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 
 public class ControlPanel {
     private JPanel panel;
@@ -27,7 +25,7 @@ public class ControlPanel {
 
 
     private final EEGController controller;
-    private ProcessorService processor;
+    private SlidingWindowAverage processor;
 
     public ControlPanel() {
         this.controller = new EEGController();
@@ -58,14 +56,14 @@ public class ControlPanel {
         pauseButton.setEnabled(true);
         stopButton.setEnabled(true);
         try {
-            statusLabel.setForeground(label);
+
             statusLabel.setText("Processing file...");
+            statusLabel.setForeground(label);
             startButton.setEnabled(false);
             openButton.setBackground(original);
-            EEGData data = controller.startProcessing();
-            statusLabel.setText("Read " + data.getSampleCountPerChannel() + " samples.");
+            controller.startProcessing();
             statusLabel.setForeground(validLabel);
-
+            statusLabel.setText("File processed succesfully!");
         } catch (Exception exception){
             statusLabel.setText("Error: " + exception);
             System.out.println("Error:"+exception);

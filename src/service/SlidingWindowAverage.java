@@ -4,7 +4,7 @@ import model.EEGData;
 
 import java.util.ArrayList;
 import java.util.List;
-public class ProcessorService {
+public class SlidingWindowAverage {
     public List<List<Double>> computeSlidingAverage(EEGData data, int windowSize) {
         List<List<Double>> result = new ArrayList<>();
         int channelCount = data.getChannelCount();
