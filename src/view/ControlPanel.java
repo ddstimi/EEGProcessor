@@ -2,7 +2,6 @@ package view;
 
 import controller.EEGController;
 import model.EEGData;
-import service.SlidingWindowAverage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +24,6 @@ public class ControlPanel {
 
 
     private final EEGController controller;
-    private SlidingWindowAverage processor;
 
     public ControlPanel() {
         this.controller = new EEGController();

@@ -17,12 +17,13 @@ public class EEGWriterThread implements Runnable {
     private List<Sample> window = new ArrayList<>();
     private BufferedWriter writer;
     private AtomicBoolean readerFinished;
-    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished){
+    private String outputDir;
+    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir){
         this.channelId = channelId;
         this.queue = queue;
+        this.outputDir=outputDir;
         try {
-            writer = new BufferedWriter(new FileWriter("channel" + channelId + ".csv"));
-            writer.write("Sample,Average\n");
+            writer = new BufferedWriter(new FileWriter(outputDir + "/channel" + channelId + ".csv"));            writer.write("Sample,Average\n");
             this.readerFinished = readerFinished;
         } catch (IOException e) {
             e.printStackTrace();
