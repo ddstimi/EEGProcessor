@@ -68,11 +68,9 @@ public class EEGWriterThread implements Runnable {
                 }
 
                 if (window.size() == 3) {
-                    double avg = (window.get(0).value + window.get(1).value + window.get(2).value) / 3.0;
+                    double avg = ((window.get(0).value + window.get(1).value + window.get(2).value) / 3.0);
                     writer.write(
-                            window.get(0).index + "-" + window.get(1).index + "-" + window.get(2).index
-                                    + "," + avg + "\n"
-                    );
+                            window.get(0).index + "-" + window.get(1).index + "-" + window.get(2).index + "," + avg + "\n");
                     writer.flush();
                 }
 

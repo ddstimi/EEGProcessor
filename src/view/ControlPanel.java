@@ -2,7 +2,6 @@ package view;
 
 import controller.EEGController;
 import interfaces.ProcessingListener;
-import model.EEGData;
 
 import javax.swing.*;
 import java.awt.*;
