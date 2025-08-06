@@ -1,59 +1,38 @@
 package controller;
 
-import model.EEGData;
-
-import java.io.*;
-import java.util.List;
-
+import model.Sample;
 import service.EEGReaderThread;
-import service.SlidingWindowAverage;
+import service.EEGWriterThread;
+
+import java.io.File;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class EEGController {
     private File selectedFile;
-    private EEGData eegData;
-    private SlidingWindowAverage processor = new SlidingWindowAverage();
-
-
+    private AtomicBoolean readerFinished = new AtomicBoolean(false);
 
     public File setSelectedFile(File file) {
         this.selectedFile = file;
-        return(file);
-    }
-
-    public File getSelectedFile() {
-        return selectedFile;
+        return (file);
     }
 
     public void startProcessing() {
         if (selectedFile == null) {
-            System.out.println("No file selected. Cannot start processing.");
+            System.out.println("No file selected.");
             return;
         }
 
-        EEGReaderThread reader = new EEGReaderThread(selectedFile, new EEGReaderThread.OnReadCompleteListener() {
-            @Override
-            public void onReadComplete(EEGData data) {
-                eegData = data;
+        ConcurrentHashMap<Integer, BlockingQueue<Sample>> channelQueues = new ConcurrentHashMap<>();
+        for (int i = 1; i <= 32; i++) {
+            channelQueues.put(i, new LinkedBlockingQueue<>());
+        }
 
-                System.out.println("Reading complete. Calculating averages...");
-                List<List<Double>> slidingAverages = processor.computeSlidingAverage(eegData, 3);
-
-                List<Double> channel4 = slidingAverages.get(3);
-                for (int i = 0; i < Math.min(10, channel4.size()); i++) {
-                    System.out.println("CH4 - Sample " + (i+1) + " avg: " + channel4.get(i+1));
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                System.err.println("Error while reading EEG file:");
-                e.printStackTrace();
-            }
-        });
-
-        Thread readerThread = new Thread(reader);
-        readerThread.start();
+        for (int i = 1; i <= 32; i++) {
+            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished));
+            writer.start();
+        }
+        Thread reader = new Thread(new EEGReaderThread(selectedFile, channelQueues, readerFinished));
+        reader.start();
     }
 }
-
-
