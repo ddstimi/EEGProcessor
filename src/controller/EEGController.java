@@ -1,9 +1,11 @@
 package controller;
 
+import interfaces.ProcessingListener;
 import model.Sample;
 import service.EEGReaderThread;
 import service.EEGWriterThread;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class EEGController {
     private File selectedFile;
     private AtomicBoolean readerFinished = new AtomicBoolean(false);
+    private final Object pauseLock = new Object();
+    private boolean paused = false;
+    private ProcessingListener listener;
 
     public File setSelectedFile(File file) {
         this.selectedFile = file;
@@ -25,7 +30,17 @@ public class EEGController {
         return (this.selectedFile.getName());
     }
 
+    public void setProcessingListener(ProcessingListener listener) {
+        this.listener = listener;
+    }
+
     public void startProcessing() {
+        if (selectedFile == null) {
+            if (listener != null) listener.onProcessingError(new IllegalStateException("No file selected"));
+            return;
+        }
+
+        if (listener != null) listener.onProcessingStarted();
         if (selectedFile == null) {
             System.out.println("No file selected.");
             return;
@@ -39,7 +54,7 @@ public class EEGController {
             e.printStackTrace();
             return;
         }
-
+        paused = false;
         ConcurrentHashMap<Integer, BlockingQueue<Sample>> channelQueues = new ConcurrentHashMap<>();
         for (int i = 1; i <= 32; i++) {
             channelQueues.put(i, new LinkedBlockingQueue<>());
@@ -48,7 +63,40 @@ public class EEGController {
         for (int i = 1; i <= 32; i++) {
             Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir));            writer.start();
         }
-        Thread reader = new Thread(new EEGReaderThread(selectedFile, channelQueues, readerFinished));
+        Thread reader = new Thread(() -> {
+            try {
+                new EEGReaderThread(selectedFile, channelQueues, readerFinished).run();
+                if (listener != null) {
+                    SwingUtilities.invokeLater(listener::onProcessingFinished);
+                }
+            } catch (Exception e) {
+                if (listener != null) {
+                    SwingUtilities.invokeLater(() -> listener.onProcessingError(e));
+                }
+            }
+        });
         reader.start();
+    }
+
+    public void pauseProcessing() {
+        synchronized (pauseLock) {
+            paused = true;
+        }
+    }
+
+    public void resumeProcessing() {
+        synchronized (pauseLock) {
+            paused = false;
+            pauseLock.notifyAll();
+        }
+    }
+
+    // Method for threads to call to wait if paused
+    public void checkPaused() throws InterruptedException {
+        synchronized (pauseLock) {
+            while (paused) {
+                pauseLock.wait();
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@ public class EEGWriterThread implements Runnable {
     private List<Sample> window = new ArrayList<>();
     private BufferedWriter writer;
     private AtomicBoolean readerFinished;
+
     private String outputDir;
     public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir){
         this.channelId = channelId;

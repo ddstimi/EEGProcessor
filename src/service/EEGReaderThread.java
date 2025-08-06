@@ -27,7 +27,7 @@ public class EEGReaderThread implements Runnable {
                 for (int channel = 1; channel <= 32; channel++) {
                     int low = dis.readUnsignedByte();
                     int high = dis.readUnsignedByte();
-                    short rawShort = (short) ((high << 8) | low);
+                    short rawShort = (short) ((low & 0xFF) | ((high & 0xFF) << 8));
 
                     sampleIndexes[channel]++;
                     Sample sample = new Sample(sampleIndexes[channel], rawShort);

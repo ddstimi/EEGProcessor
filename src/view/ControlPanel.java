@@ -1,6 +1,7 @@
 package view;
 
 import controller.EEGController;
+import interfaces.ProcessingListener;
 import model.EEGData;
 
 import javax.swing.*;
@@ -22,11 +23,40 @@ public class ControlPanel {
     private Color original = new Color(100,147,142);
     private Color label = new Color(180, 243, 235);
 
-
     private final EEGController controller;
-
+    private boolean isPaused = false;
     public ControlPanel() {
         this.controller = new EEGController();
+
+        controller.setProcessingListener(new ProcessingListener() {
+            @Override
+            public void onProcessingStarted() {
+                SwingUtilities.invokeLater(() -> {
+                    statusLabel.setText("Processing file...");
+                    statusLabel.setForeground(label);
+                });
+            }
+
+            @Override
+            public void onProcessingFinished() {
+                SwingUtilities.invokeLater(() -> {
+                    statusLabel.setText("File processed successfully!");
+                    statusLabel.setForeground(validLabel);
+                    startButton.setEnabled(false);
+                    pauseButton.setEnabled(false);
+                    stopButton.setEnabled(false);
+                });
+            }
+
+            @Override
+            public void onProcessingError(Exception e) {
+                SwingUtilities.invokeLater(() -> {
+                    statusLabel.setText("Error: " + e.getMessage());
+                    statusLabel.setForeground(Color.red);
+                });
+            }
+        });
+
         fileChooser = new JFileChooser();
         startButton.setEnabled(false);
         pauseButton.setEnabled(false);
@@ -34,6 +64,7 @@ public class ControlPanel {
 
         openButton.addActionListener(this::handleOpenButton);
         startButton.addActionListener(this::handleStartButton);
+        pauseButton.addActionListener(this::handlePauseButton);
 
     }
 
@@ -67,6 +98,21 @@ public class ControlPanel {
             System.out.println("Error:"+exception);
             statusLabel.setForeground(Color.red);
 
+        }
+    }
+    private void handlePauseButton(ActionEvent e) {
+        if (!isPaused) {
+            controller.pauseProcessing();
+            pauseButton.setText("Resume");
+            statusLabel.setText("Processing paused");
+            statusLabel.setForeground(Color.ORANGE);
+            isPaused = true;
+        } else {
+            controller.resumeProcessing();
+            pauseButton.setText("Pause");
+            statusLabel.setText("Processing resumed");
+            statusLabel.setForeground(new Color(57, 238, 72, 226)); // validLabel
+            isPaused = false;
         }
     }
 
