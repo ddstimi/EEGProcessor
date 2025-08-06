@@ -22,9 +22,10 @@ public class ControlPanel {
     private Color validLabel = new Color(57, 238, 72, 226);
     private Color original = new Color(100,147,142);
     private Color label = new Color(180, 243, 235);
+    private Color stopped = new Color(255, 187, 0);
+    private boolean paused=false;
 
     private final EEGController controller;
-    private boolean isPaused = false;
     public ControlPanel() {
         this.controller = new EEGController();
 
@@ -65,7 +66,22 @@ public class ControlPanel {
         openButton.addActionListener(this::handleOpenButton);
         startButton.addActionListener(this::handleStartButton);
         pauseButton.addActionListener(this::handlePauseButton);
+    }
 
+    private void handlePauseButton(ActionEvent actionEvent) {
+        if(!paused){
+            paused=true;
+            controller.pauseProcessing();
+            pauseButton.setText("Resume");
+            statusLabel.setText("Processing paused. Click Resume to continue.");
+            statusLabel.setForeground(stopped);
+        }else{
+            paused=false;
+            controller.resumeProcessing();
+            pauseButton.setText("Pause");
+            statusLabel.setText("Processing file...");
+            statusLabel.setForeground(label);
+        }
     }
 
     private void handleOpenButton(ActionEvent e) {
@@ -100,21 +116,7 @@ public class ControlPanel {
 
         }
     }
-    private void handlePauseButton(ActionEvent e) {
-        if (!isPaused) {
-            controller.pauseProcessing();
-            pauseButton.setText("Resume");
-            statusLabel.setText("Processing paused");
-            statusLabel.setForeground(Color.ORANGE);
-            isPaused = true;
-        } else {
-            controller.resumeProcessing();
-            pauseButton.setText("Pause");
-            statusLabel.setText("Processing resumed");
-            statusLabel.setForeground(new Color(57, 238, 72, 226)); // validLabel
-            isPaused = false;
-        }
-    }
+
 
     public JPanel getMainPanel() {
         return panel;

@@ -18,8 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class EEGController {
     private File selectedFile;
     private AtomicBoolean readerFinished = new AtomicBoolean(false);
-    private final Object pauseLock = new Object();
-    private boolean paused = false;
+    private final AtomicBoolean paused = new AtomicBoolean(false);
     private ProcessingListener listener;
 
     public File setSelectedFile(File file) {
@@ -54,18 +53,19 @@ public class EEGController {
             e.printStackTrace();
             return;
         }
-        paused = false;
         ConcurrentHashMap<Integer, BlockingQueue<Sample>> channelQueues = new ConcurrentHashMap<>();
         for (int i = 1; i <= 32; i++) {
             channelQueues.put(i, new LinkedBlockingQueue<>());
         }
 
         for (int i = 1; i <= 32; i++) {
-            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir));            writer.start();
+            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir, paused));
+            writer.start();
         }
+
         Thread reader = new Thread(() -> {
             try {
-                new EEGReaderThread(selectedFile, channelQueues, readerFinished).run();
+                new EEGReaderThread(selectedFile, channelQueues, readerFinished, paused).run();
                 if (listener != null) {
                     SwingUtilities.invokeLater(listener::onProcessingFinished);
                 }
@@ -79,24 +79,11 @@ public class EEGController {
     }
 
     public void pauseProcessing() {
-        synchronized (pauseLock) {
-            paused = true;
-        }
+        paused.set(true);
     }
 
     public void resumeProcessing() {
-        synchronized (pauseLock) {
-            paused = false;
-            pauseLock.notifyAll();
-        }
+        paused.set(false);
     }
 
-    // Method for threads to call to wait if paused
-    public void checkPaused() throws InterruptedException {
-        synchronized (pauseLock) {
-            while (paused) {
-                pauseLock.wait();
-            }
-        }
-    }
 }

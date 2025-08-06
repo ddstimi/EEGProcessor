@@ -17,12 +17,14 @@ public class EEGWriterThread implements Runnable {
     private List<Sample> window = new ArrayList<>();
     private BufferedWriter writer;
     private AtomicBoolean readerFinished;
-
     private String outputDir;
-    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir){
+    private final AtomicBoolean paused;
+
+    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir,AtomicBoolean paused){
         this.channelId = channelId;
         this.queue = queue;
         this.outputDir=outputDir;
+        this.paused=paused;
         try {
             writer = new BufferedWriter(new FileWriter(outputDir + "/channel" + channelId + ".csv"));            writer.write("Sample,Average\n");
             this.readerFinished = readerFinished;
@@ -35,6 +37,14 @@ public class EEGWriterThread implements Runnable {
     public void run() {
         try {
             while (true) {
+                while (paused.get()) {
+                    try {
+                        Thread.sleep(100); // Sleep while paused
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return; // Exit gracefully if interrupted
+                    }
+                }
                 Sample sample = queue.poll(100, TimeUnit.MILLISECONDS);
                 if (sample == null) {
                     if (readerFinished.get() && queue.isEmpty()) {
@@ -69,4 +79,5 @@ public class EEGWriterThread implements Runnable {
             }
         }
     }
+
 }
