@@ -1,38 +1,48 @@
 package service;
 
-import model.EEGData;
+import model.Sample;
 
 import java.io.*;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class EEGReaderThread implements Runnable {
     private File file;
-    private EEGData eegData;
-    private OnReadCompleteListener listener;
+    private Map<Integer, BlockingQueue<Sample>> channelQueues;
 
-    public interface OnReadCompleteListener {
-        void onReadComplete(EEGData data);
-        void onError(Exception e);
-    }
+    private AtomicBoolean readerFinished;
 
-    public EEGReaderThread(File file, OnReadCompleteListener listener) {
+    public EEGReaderThread(File file, Map<Integer, BlockingQueue<Sample>> channelQueues, AtomicBoolean readerFinished){
         this.file = file;
-        this.listener = listener;
-        this.eegData = new EEGData();
+        this.channelQueues = channelQueues;
+        this.readerFinished = readerFinished;
     }
 
     @Override
     public void run() {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
+            int[] sampleIndexes = new int[33];
             while (true) {
                 for (int channel = 1; channel <= 32; channel++) {
                     short rawShort = dis.readShort();
-                    eegData.addSampleToChannel(channel, rawShort);
+
+                    sampleIndexes[channel]++;
+                    Sample sample = new Sample(sampleIndexes[channel], rawShort);
+
+                    channelQueues.get(channel).put(sample);
                 }
             }
+
+
         } catch (EOFException e) {
-            listener.onReadComplete(eegData);
-        } catch (Exception ex) {
-            listener.onError(ex);
+        System.out.println("Finished reading the file.");
+        readerFinished.set(true);
+    }
+ catch (Exception ex) {
+            System.err.println("Error while reading EEG file:");
+            ex.printStackTrace();
         }
     }
+
 }
