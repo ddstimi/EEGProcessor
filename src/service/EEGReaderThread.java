@@ -13,13 +13,13 @@ public class EEGReaderThread implements Runnable {
 
     private AtomicBoolean readerFinished;
     private final AtomicBoolean paused;
-
-
-    public EEGReaderThread(File file, Map<Integer, BlockingQueue<Sample>> channelQueues, AtomicBoolean readerFinished,AtomicBoolean paused){
+    private final AtomicBoolean stopped;
+    public EEGReaderThread(File file, Map<Integer, BlockingQueue<Sample>> channelQueues, AtomicBoolean readerFinished,AtomicBoolean paused,AtomicBoolean stopped){
         this.file = file;
         this.channelQueues = channelQueues;
         this.readerFinished = readerFinished;
         this.paused=paused;
+        this.stopped=stopped;
     }
 
     @Override
@@ -27,6 +27,9 @@ public class EEGReaderThread implements Runnable {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
             int[] sampleIndexes = new int[33];
             while (true) {
+                if (stopped.get()) {
+                    break;
+                }
                 while (paused.get()) {
                     try {
                         Thread.sleep(100);
@@ -34,17 +37,19 @@ public class EEGReaderThread implements Runnable {
                         Thread.currentThread().interrupt();
                         return;
                     }
-                }
-                for (int channel = 1; channel <= 32; channel++) {
-                    int low = dis.readUnsignedByte();
-                    int high = dis.readUnsignedByte();
-                    short rawShort = (short) ((low & 0xFF) | ((high & 0xFF) << 8));
+                }while (!stopped.get()) {
+                    for (int channel = 1; channel <= 32; channel++) {
+                        if (stopped.get()) break;
+                        int low = dis.readUnsignedByte();
+                        int high = dis.readUnsignedByte();
+                        short rawShort = (short) ((low & 0xFF) | ((high & 0xFF) << 8));
 
-                    sampleIndexes[channel]++;
-                    Sample sample = new Sample(sampleIndexes[channel], rawShort);
+                        sampleIndexes[channel]++;
+                        Sample sample = new Sample(sampleIndexes[channel], rawShort);
 
-                    channelQueues.get(channel).put(sample);
-                }
+                        channelQueues.get(channel).put(sample);
+                    }                }
+
             }
 
 

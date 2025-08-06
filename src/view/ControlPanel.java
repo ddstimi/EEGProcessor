@@ -22,8 +22,11 @@ public class ControlPanel {
     private Color validLabel = new Color(57, 238, 72, 226);
     private Color original = new Color(100,147,142);
     private Color label = new Color(180, 243, 235);
-    private Color stopped = new Color(255, 187, 0);
+    private Color pause = new Color(255, 187, 0);
+    private Color stop = new Color(250, 66, 66);
+
     private boolean paused=false;
+    private boolean stopped=false;
 
     private final EEGController controller;
     public ControlPanel() {
@@ -43,9 +46,10 @@ public class ControlPanel {
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText("File processed successfully!");
                     statusLabel.setForeground(validLabel);
-                    startButton.setEnabled(false);
+                    startButton.setEnabled(true);
                     pauseButton.setEnabled(false);
                     stopButton.setEnabled(false);
+                    openButton.setBackground(valid);
                 });
             }
 
@@ -66,6 +70,21 @@ public class ControlPanel {
         openButton.addActionListener(this::handleOpenButton);
         startButton.addActionListener(this::handleStartButton);
         pauseButton.addActionListener(this::handlePauseButton);
+        stopButton.addActionListener(this::handleStopButton);
+
+    }
+
+    private void handleStopButton(ActionEvent actionEvent) {
+        if(!stopped){
+            stopped=true;
+            statusLabel.setText("Processing stopped.");
+            statusLabel.setForeground(stop);
+            controller.stopProcessing();
+            openButton.setBackground(valid);
+            pauseButton.setEnabled(false);
+            startButton.setEnabled(true);
+            stopButton.setEnabled(false);
+        }
     }
 
     private void handlePauseButton(ActionEvent actionEvent) {
@@ -74,7 +93,7 @@ public class ControlPanel {
             controller.pauseProcessing();
             pauseButton.setText("Resume");
             statusLabel.setText("Processing paused. Click Resume to continue.");
-            statusLabel.setForeground(stopped);
+            statusLabel.setForeground(pause);
         }else{
             paused=false;
             controller.resumeProcessing();
@@ -100,6 +119,7 @@ public class ControlPanel {
     private void handleStartButton(ActionEvent e){
         pauseButton.setEnabled(true);
         stopButton.setEnabled(true);
+        stopped=false;
         try {
 
             statusLabel.setText("Processing file...");
@@ -109,6 +129,7 @@ public class ControlPanel {
             controller.startProcessing();
             statusLabel.setForeground(validLabel);
             statusLabel.setText("File processed succesfully!");
+            startButton.setEnabled(true);
         } catch (Exception exception){
             statusLabel.setText("Error: " + exception);
             System.out.println("Error:"+exception);

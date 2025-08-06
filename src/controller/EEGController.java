@@ -20,6 +20,8 @@ public class EEGController {
     private AtomicBoolean readerFinished = new AtomicBoolean(false);
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private ProcessingListener listener;
+    private AtomicBoolean stopped = new AtomicBoolean(false);
+
 
     public File setSelectedFile(File file) {
         this.selectedFile = file;
@@ -59,14 +61,14 @@ public class EEGController {
         }
 
         for (int i = 1; i <= 32; i++) {
-            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir, paused));
+            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir, paused,stopped));
             writer.start();
         }
-
+        stopped.set(false);
         Thread reader = new Thread(() -> {
             try {
-                new EEGReaderThread(selectedFile, channelQueues, readerFinished, paused).run();
-                if (listener != null) {
+                new EEGReaderThread(selectedFile, channelQueues, readerFinished, paused,stopped).run();
+                if (!stopped.get() && listener != null) {
                     SwingUtilities.invokeLater(listener::onProcessingFinished);
                 }
             } catch (Exception e) {
@@ -84,6 +86,11 @@ public class EEGController {
 
     public void resumeProcessing() {
         paused.set(false);
+        stopped.set(false);
     }
+    public void stopProcessing() {
+        stopped.set(true);
+    }
+
 
 }
