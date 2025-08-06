@@ -25,7 +25,9 @@ public class EEGReaderThread implements Runnable {
             int[] sampleIndexes = new int[33];
             while (true) {
                 for (int channel = 1; channel <= 32; channel++) {
-                    short rawShort = dis.readShort();
+                    int low = dis.readUnsignedByte();
+                    int high = dis.readUnsignedByte();
+                    short rawShort = (short) ((high << 8) | low);
 
                     sampleIndexes[channel]++;
                     Sample sample = new Sample(sampleIndexes[channel], rawShort);
@@ -33,6 +35,7 @@ public class EEGReaderThread implements Runnable {
                     channelQueues.get(channel).put(sample);
                 }
             }
+
 
 
         } catch (EOFException e) {
