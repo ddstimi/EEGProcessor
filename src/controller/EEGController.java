@@ -1,9 +1,6 @@
 package controller;
 
-import model.Sample;
-import service.EEGReaderThread;
-import service.EEGWriterThread;
-
+import interfaces.ProcessingListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,10 +9,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.*;
+import model.Sample;
+import service.EEGReaderThread;
+import service.EEGWriterThread;
 
 public class EEGController {
     private File selectedFile;
     private AtomicBoolean readerFinished = new AtomicBoolean(false);
+    private final AtomicBoolean paused = new AtomicBoolean(false);
+    private ProcessingListener listener;
+    private AtomicBoolean stopped = new AtomicBoolean(false);
+
 
     public File setSelectedFile(File file) {
         this.selectedFile = file;
@@ -25,9 +30,19 @@ public class EEGController {
         return (this.selectedFile.getName());
     }
 
+    public void setProcessingListener(ProcessingListener listener) {
+        this.listener = listener;
+    }
+
     public void startProcessing() {
         if (selectedFile == null) {
-            System.out.println("No file selected.");
+            if (listener != null) listener.onProcessingError(new IllegalStateException("No file selected"));
+            return;
+        }
+
+        if (listener != null) listener.onProcessingStarted();
+        if (selectedFile == null) {
+            //System.out.println("No file selected.");
             return;
         }
         String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
@@ -39,16 +54,42 @@ public class EEGController {
             e.printStackTrace();
             return;
         }
-
         ConcurrentHashMap<Integer, BlockingQueue<Sample>> channelQueues = new ConcurrentHashMap<>();
         for (int i = 1; i <= 32; i++) {
             channelQueues.put(i, new LinkedBlockingQueue<>());
         }
 
         for (int i = 1; i <= 32; i++) {
-            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir));            writer.start();
+            Thread writer = new Thread(new EEGWriterThread(i, channelQueues.get(i), readerFinished, outputDir, paused,stopped));
+            writer.start();
         }
-        Thread reader = new Thread(new EEGReaderThread(selectedFile, channelQueues, readerFinished));
+        stopped.set(false);
+        Thread reader = new Thread(() -> {
+            try {
+                new EEGReaderThread(selectedFile, channelQueues, readerFinished, paused,stopped).run();
+                if (!stopped.get() && listener != null) {
+                    SwingUtilities.invokeLater(listener::onProcessingFinished);
+                }
+            } catch (Exception e) {
+                if (listener != null) {
+                    SwingUtilities.invokeLater(() -> listener.onProcessingError(e));
+                }
+            }
+        });
         reader.start();
     }
+
+    public void pauseProcessing() {
+        paused.set(true);
+    }
+
+    public void resumeProcessing() {
+        paused.set(false);
+        stopped.set(false);
+    }
+    public void stopProcessing() {
+        stopped.set(true);
+    }
+
+
 }

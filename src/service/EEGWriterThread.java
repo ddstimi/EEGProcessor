@@ -1,7 +1,5 @@
 package service;
 
-import model.Sample;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import model.Sample;
 
 public class EEGWriterThread implements Runnable {
     private int channelId;
@@ -18,12 +17,20 @@ public class EEGWriterThread implements Runnable {
     private BufferedWriter writer;
     private AtomicBoolean readerFinished;
     private String outputDir;
-    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir){
+    private final AtomicBoolean paused;
+    private final AtomicBoolean stopped;
+
+
+    public EEGWriterThread(int channelId, BlockingQueue<Sample> queue, AtomicBoolean readerFinished,String outputDir,AtomicBoolean paused,AtomicBoolean stopped){
         this.channelId = channelId;
         this.queue = queue;
         this.outputDir=outputDir;
+        this.paused=paused;
+        this.stopped=stopped;
+
         try {
-            writer = new BufferedWriter(new FileWriter(outputDir + "/channel" + channelId + ".csv"));            writer.write("Sample,Average\n");
+            writer = new BufferedWriter(new FileWriter(outputDir + "/channel" + channelId + ".csv"));
+            writer.write("Sample,Average\n");
             this.readerFinished = readerFinished;
         } catch (IOException e) {
             e.printStackTrace();
@@ -34,6 +41,17 @@ public class EEGWriterThread implements Runnable {
     public void run() {
         try {
             while (true) {
+                if (stopped.get()) {
+                    break;
+                }
+                while (paused.get()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
                 Sample sample = queue.poll(100, TimeUnit.MILLISECONDS);
                 if (sample == null) {
                     if (readerFinished.get() && queue.isEmpty()) {
@@ -49,11 +67,9 @@ public class EEGWriterThread implements Runnable {
                 }
 
                 if (window.size() == 3) {
-                    double avg = (window.get(0).value + window.get(1).value + window.get(2).value) / 3.0;
+                    double avg = ((window.get(0).value + window.get(1).value + window.get(2).value) / 3.0);
                     writer.write(
-                            window.get(0).index + "-" + window.get(1).index + "-" + window.get(2).index
-                                    + "," + avg + "\n"
-                    );
+                            window.get(0).index + "-" + window.get(1).index + "-" + window.get(2).index + "," + avg + "\n");
                     writer.flush();
                 }
 
@@ -68,4 +84,5 @@ public class EEGWriterThread implements Runnable {
             }
         }
     }
+
 }
