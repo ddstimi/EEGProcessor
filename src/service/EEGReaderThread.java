@@ -25,18 +25,12 @@ public class EEGReaderThread implements Runnable {
     public void run() {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
             int[] sampleIndexes = new int[33];
-            while (true) {
-                if (stopped.get()) {
-                    break;
+            while (!stopped.get()) {
+                if (paused.get()) {
+                    Thread.sleep(100);
+                    continue;
                 }
-                while (paused.get()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }while (!stopped.get()) {
+
                     for (int channel = 1; channel <= 32; channel++) {
                         if (stopped.get()) break;
                         int low = dis.readUnsignedByte();
@@ -47,7 +41,7 @@ public class EEGReaderThread implements Runnable {
                         Sample sample = new Sample(sampleIndexes[channel], rawShort);
 
                         channelQueues.get(channel).put(sample);
-                    }                }
+                    }
 
             }
 
