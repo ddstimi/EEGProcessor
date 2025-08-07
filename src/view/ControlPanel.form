@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="view.ControlPanel">
+  <grid id="27dc6" binding="panel" layout-manager="GridLayoutManager" row-count="10" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties>
+      <background color="-16761789"/>
+      <foreground color="-16761789"/>
+      <minimumSize width="400" height="400"/>
+      <preferredSize width="400" height="400"/>
+      <verifyInputWhenFocusTarget value="false"/>
+      <visible value="true"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <component id="8adc" class="javax.swing.JButton" binding="stopButton">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="80" height="30"/>
+            <preferred-size width="80" height="30"/>
+          </grid>
+        </constraints>
+        <properties>
+          <background color="-10185842"/>
+          <foreground color="-1"/>
+          <text value="Stop"/>
+        </properties>
+      </component>
+      <component id="8e6d8" class="javax.swing.JButton" binding="startButton">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="80" height="30"/>
+            <preferred-size width="80" height="30"/>
+          </grid>
+        </constraints>
+        <properties>
+          <alignmentX value="0.0"/>
+          <alignmentY value="0.5"/>
+          <background color="-10185842"/>
+          <foreground color="-1"/>
+          <hideActionText value="false"/>
+          <selected value="false"/>
+          <text value="Start"/>
+        </properties>
+      </component>
+      <component id="3095a" class="javax.swing.JButton" binding="pauseButton">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="80" height="30"/>
+            <preferred-size width="80" height="30"/>
+          </grid>
+        </constraints>
+        <properties>
+          <background color="-10185842"/>
+          <foreground color="-1"/>
+          <text value="Pause"/>
+        </properties>
+      </component>
+      <component id="ccbe6" class="javax.swing.JSeparator">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <foreground color="-16761789"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="86ff5" class="javax.swing.JSeparator">
+        <constraints>
+          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <foreground color="-16761789"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="fc58d" class="javax.swing.JSeparator">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <alignmentX value="1.0"/>
+          <alignmentY value="1.0"/>
+          <foreground color="-16761789"/>
+          <requestFocusEnabled value="false"/>
+          <verifyInputWhenFocusTarget value="false"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="13a6" class="javax.swing.JButton" binding="openButton">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="100" height="30"/>
+            <preferred-size width="100" height="30"/>
+          </grid>
+        </constraints>
+        <properties>
+          <background color="-10185842"/>
+          <foreground color="-1"/>
+          <text value="Open file"/>
+        </properties>
+      </component>
+      <component id="26360" class="javax.swing.JSeparator">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <foreground color="-16761789"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="299a4" class="javax.swing.JLabel" binding="fileNameLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <background color="-6098456"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="1c5a9" class="javax.swing.JLabel" binding="statusLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
