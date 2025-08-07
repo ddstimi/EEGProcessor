@@ -43,7 +43,7 @@ public class EEGController {
 
         if (listener != null) listener.onProcessingStarted();
         if (selectedFile == null) {
-            System.out.println("No file selected.");
+            //System.out.println("No file selected.");
             return;
         }
         String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());

@@ -55,7 +55,7 @@ public class EEGReaderThread implements Runnable {
 
 
         } catch (EOFException e) {
-        System.out.println("Finished reading the file.");
+        //System.out.println("Finished reading the file.");
         readerFinished.set(true);
     } catch (Exception ex) {
             System.err.println("Error while reading EEG file:");

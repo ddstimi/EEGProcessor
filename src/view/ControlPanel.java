@@ -131,7 +131,7 @@ public class ControlPanel {
             startButton.setEnabled(true);
         } catch (Exception exception){
             statusLabel.setText("Error: " + exception);
-            System.out.println("Error:"+exception);
+            //System.out.println("Error:"+exception);
             statusLabel.setForeground(Color.red);
 
         }
